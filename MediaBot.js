@@ -1,7 +1,11 @@
+var fs = require('fs');
+var botLogin = require("./tsconfig.json")
+let login = botLogin.token;
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
-client.login("NjQxNjY2NjgyMTc5NDIwMTc1.XcOYTQ.RmVsYE1nn71u3Ky3Yzwl6uXZOt0");
+
+client.login(login);
 
 client.on('ready', () => {//when bot connects, do all below
 
