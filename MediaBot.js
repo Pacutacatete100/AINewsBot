@@ -1,7 +1,7 @@
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
-client.login("NjQxNjY2NjgyMTc5NDIwMTc1.XcLs-A.BYw_SwxD0dIlpq3Eg5sIXOBfEHU");
+client.login("NjQxNjY2NjgyMTc5NDIwMTc1.XcNAnw.BN1xq7ouscHMiEYnc8EWHeBER-c");
 
 client.on('ready', () => {//when bot connects, do all below
 
@@ -13,8 +13,7 @@ client.on('ready', () => {//when bot connects, do all below
         })
     });
 
-    let generalChat = client.channels.get("491806365413670918");
-    const attachment = new Discord.Attachment("https://www.youtube.com/watch?v=8o25pRbXdFw");//send link here
+    let generalChat = client.channels.get("641670546127454208");
     generalChat.send("Hello World")
 });
 
@@ -37,6 +36,9 @@ function processCommand(recievedMessage) {
     if (primaryCommand === "multiply") {
         multiplyCommand(args, recievedMessage)
     }
+    if (primaryCommand === "link") {
+        sendLink(recievedMessage)
+    }
 }
 
 function multiplyCommand(args, recievedMessage) {
@@ -47,4 +49,14 @@ function multiplyCommand(args, recievedMessage) {
     });
 
     recievedMessage.channel.send(product.toString())
+}
+
+function sendLink(recievedMessage) {
+    let linkArr = ["https://www.devdungeon.com/content/javascript-discord-bot-tutorial",
+        "https://www.cmu.edu/",
+        "http://www.mit.edu/",
+        "https://blog.feedspot.com/ai_blogs/",
+        "https://www.sciencedaily.com/news/computers_math/artificial_intelligence/"];
+
+    recievedMessage.channel.send(linkArr[Math.floor(Math.random() * linkArr.length)])
 }
