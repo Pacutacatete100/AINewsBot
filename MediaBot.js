@@ -1,7 +1,7 @@
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
-client.login("NjQxNjY2NjgyMTc5NDIwMTc1.XcNAnw.BN1xq7ouscHMiEYnc8EWHeBER-c");
+client.login("TOKEN");
 
 client.on('ready', () => {//when bot connects, do all below
 
