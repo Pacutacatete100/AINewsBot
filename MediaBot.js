@@ -1,7 +1,7 @@
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
-client.login("TOKEN");
+client.login("NjQxNjY2NjgyMTc5NDIwMTc1.XcOYTQ.RmVsYE1nn71u3Ky3Yzwl6uXZOt0");
 
 client.on('ready', () => {//when bot connects, do all below
 
@@ -36,8 +36,14 @@ function processCommand(recievedMessage) {
     if (primaryCommand === "multiply") {
         multiplyCommand(args, recievedMessage)
     }
-    if (primaryCommand === "link") {
+    else if (primaryCommand === "link") {
         sendLink(recievedMessage)
+    }
+    else if (primaryCommand === "github"){
+        recievedMessage.channel.send("https://github.com/Pacutacatete100/AINewsBot/blob/master/MediaBot.js")
+    }
+    else if (primaryCommand === "add") {
+        addCommand(args, recievedMessage)
     }
 }
 
@@ -51,6 +57,16 @@ function multiplyCommand(args, recievedMessage) {
     recievedMessage.channel.send(product.toString())
 }
 
+function addCommand(args, recievedMessage) {
+    let sum = 0;
+
+    args.forEach((value) => {
+        sum += parseFloat(value)
+    });
+
+    recievedMessage.channel.send(sum.toString())
+}
+
 function sendLink(recievedMessage) {
     let linkArr = ["https://www.devdungeon.com/content/javascript-discord-bot-tutorial",
         "https://www.cmu.edu/",
@@ -60,3 +76,8 @@ function sendLink(recievedMessage) {
 
     recievedMessage.channel.send(linkArr[Math.floor(Math.random() * linkArr.length)])
 }
+
+function scrapeForLink() {
+
+}
+
