@@ -1,0 +1,9 @@
+{
+  "name": "AINewsBot",
+  "version": "1.0.0",
+  "dependencies": {
+    "cheerio": "latest",
+    "request": "latest",
+    "discord.js": "latest"
+  }
+}
