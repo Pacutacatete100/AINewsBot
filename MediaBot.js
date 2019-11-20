@@ -1,4 +1,3 @@
-
 var botLogin = require("./tsconfig.json");
 let login = botLogin.token;
 
@@ -9,25 +8,12 @@ const cheerio = require('cheerio');
 
 client.login(login);
 
-client.on('ready', () => { //when bot connects, do all below
-
-    console.log("connected as " + client.user.tag);
-    client.guilds.forEach((guild) =>{
-        console.log(guild.name);
-        guild.channels.forEach((channel) => {
-            console.log(channel.name + " " + channel.type + " " + channel.id)
-        })
-    });
-});
-
 client.on('message', (recievedMessage) =>{
-    if(recievedMessage.author === client.user){//if message was sent by bot, return (otherwise could be infinite loop)
-        return
-    }
+    if(recievedMessage.author === client.user)//if message was sent by bot, return (otherwise could be infinite loop)
+        return;
 
-    if(recievedMessage.content.startsWith("!")){
-        processCommand(recievedMessage)
-    }
+    if(recievedMessage.content.startsWith("!"))
+        processCommand(recievedMessage);
 });
 
 function processCommand(recievedMessage) {
@@ -36,21 +22,21 @@ function processCommand(recievedMessage) {
     let primaryCommand = splitCommand[0];
     let args = splitCommand.slice(1);
 
-    if (primaryCommand === "multiply") {
-        multiplyCommand(args, recievedMessage)
-    }
-    else if (primaryCommand === "github"){
-        recievedMessage.channel.send("https://github.com/Pacutacatete100/AINewsBot/blob/master/MediaBot.js")
-    }
-    else if (primaryCommand === "add") {
-        addCommand(args, recievedMessage)
-    }
-    else if(primaryCommand === "factorial"){
-        factorial(args, recievedMessage)
-    }
-    else  if (primaryCommand === "news"){
-        scrapeForLink(recievedMessage)
-    }
+    if (primaryCommand === "multiply")
+        multiplyCommand(args, recievedMessage);
+
+    else if (primaryCommand === "github")
+        recievedMessage.channel.send("https://github.com/Pacutacatete100/AINewsBot/blob/master/MediaBot.js");
+
+    else if (primaryCommand === "add")
+        addCommand(args, recievedMessage);
+
+    else if(primaryCommand === "factorial")
+        factorial(args, recievedMessage);
+
+    else  if (primaryCommand === "news")
+        console.log(scrapeForLink(recievedMessage));
+
 }
 
 function multiplyCommand(args, recievedMessage) {
@@ -84,44 +70,44 @@ function factorial(args, recievedMessage) {
     recievedMessage.channel.send(sum.toString())
 }
 
-function getLink() {
-    let linkArr = ["https://www.devdungeon.com/content/javascript-discord-bot-tutorial",
-        "https://www.cmu.edu/",
-        "http://www.mit.edu/",
-        "https://blog.feedspot.com/ai_blogs/",
-        "https://www.sciencedaily.com/news/computers_math/artificial_intelligence/"];
-
-    return linkArr[Math.floor(Math.random() * linkArr.length)]
-}
-
 function scrapeForLink(recievedMessage) {
-
-    let titleArr = [];
-    let linkArr = [];
+    let link;
+    let title;
     let scienceDailyURL = "https://www.sciencedaily.com";
 
-    request("https://www.sciencedaily.com/news/computers_math/artificial_intelligence/",
-    (error, response, html) => {
+    let x = request("https://www.sciencedaily.com/news/computers_math/artificial_intelligence/",
+        (error, response, html) => {
+            let success = !error && response.statusCode === 200;
+            if (success){
+                const $ = cheerio.load(html);
+                title = $('#featured_tab_1').find('.latest-head').find('a').text();
+                link = $('#featured_tab_1').find('.latest-head').find('a').attr('href');
+            }
+            scrapeForSource(recievedMessage, (scienceDailyURL + link), title);
+        });
+     //TODO: add search-ability, users can say key terms they want in a search and bot searches for key terms in summary or title
+
+}
+
+function scrapeForSource(recievedMessage, link, title) {
+
+    let source;
+    let summary;
+
+    let x = request(link, (error, response, html) => {
         let success = !error && response.statusCode === 200;
 
-        if (success){
+        if (success) {
             const $ = cheerio.load(html);
-
-            $('.latest-head').each((index, element)=>{
-                const title = $(element)
-                    .text();
-                const link = $(element)
-                    .find('a')
-                    .attr('href');
-
-                titleArr.push(title);
-                linkArr.push(link);
-            });
-
-            recievedMessage.channel
-                .send(titleArr[4] + ": " + scienceDailyURL + linkArr[4])
+            summary = $('#abstract').text();
+            source = $('#story_source').find('a').attr('href');
         }
-        //TODO: make this initial link, then find the "story source" URL and send that
-    })
+        sendSourceLink(recievedMessage, title, summary, source);
+    });
 }
+
+function sendSourceLink(recievedMessage, title, summary, link) {
+    recievedMessage.channel.send("**" + title + ":** \n" + summary + link)
+}
+
 
