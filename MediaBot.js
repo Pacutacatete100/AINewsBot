@@ -8,10 +8,18 @@ const cheerio = require('cheerio');
 
 client.login(login);
 
+client.on('ready', () =>{
+    let channel = client.channels.find(channel => channel.id === '641670546127454208');
+    channel.send("Bot is now online!");
+
+    setInterval(() => {
+        scrapeForLink(channel)
+    }, 86400000);//24 hours
+});
+
 client.on('message', (recievedMessage) =>{
     if(recievedMessage.author === client.user)//if message was sent by bot, return (otherwise could be infinite loop)
         return;
-
     if(recievedMessage.content.startsWith("!"))
         processCommand(recievedMessage);
 });
@@ -34,8 +42,8 @@ function processCommand(recievedMessage) {
     else if(primaryCommand === "factorial")
         factorial(args, recievedMessage);
 
-    else  if (primaryCommand === "news")
-        console.log(scrapeForLink(recievedMessage));
+    else if (primaryCommand === "search")
+        search(args, recievedMessage);
 
 }
 
@@ -70,7 +78,7 @@ function factorial(args, recievedMessage) {
     recievedMessage.channel.send(sum.toString())
 }
 
-function scrapeForLink(recievedMessage) {
+function scrapeForLink(channel) {
     let link;
     let title;
     let scienceDailyURL = "https://www.sciencedaily.com";
@@ -83,13 +91,13 @@ function scrapeForLink(recievedMessage) {
                 title = $('#featured_tab_1').find('.latest-head').find('a').text();
                 link = $('#featured_tab_1').find('.latest-head').find('a').attr('href');
             }
-            scrapeForSource(recievedMessage, (scienceDailyURL + link), title);
+            scrapeForSource((scienceDailyURL + link), title, channel);
         });
      //TODO: add search-ability, users can say key terms they want in a search and bot searches for key terms in summary or title
 
 }
 
-function scrapeForSource(recievedMessage, link, title) {
+function scrapeForSource(link, title, channel) {
 
     let source;
     let summary;
@@ -102,12 +110,27 @@ function scrapeForSource(recievedMessage, link, title) {
             summary = $('#abstract').text();
             source = $('#story_source').find('a').attr('href');
         }
-        sendSourceLink(recievedMessage, title, summary, source);
+        sendSourceLink(title, summary, source, channel);
     });
 }
 
-function sendSourceLink(recievedMessage, title, summary, link) {
-    recievedMessage.channel.send("**" + title + ":** \n" + summary + link)
+function sendSourceLink(title, summary, link, channel) {
+    let embed = new Discord.RichEmbed()
+        .setAuthor('Daily News')
+        .setColor('#00bfff')
+        .setTitle(title)
+        .setDescription(summary)
+        .addField('link:', link)
+        .setTimestamp();
+
+    channel.send(embed);
 }
+
+function search(args, recievedMessage) {
+    recievedMessage.channel.send("searching")
+    //TODO: add search-ability, user can use command with key words to search for articles
+}
+
+
 
 
