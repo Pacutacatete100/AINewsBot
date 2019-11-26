@@ -2,8 +2,9 @@
   "name": "AINewsBot",
   "version": "1.0.0",
   "dependencies": {
-    "cheerio": "latest",
+    "cheerio": "^1.0.0-rc.3",
+    "discord.js": "^11.5.1",
     "request": "latest",
-    "discord.js": "latest"
+    "snoowrap": "^1.20.1"
   }
 }

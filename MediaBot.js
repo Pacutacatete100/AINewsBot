@@ -6,15 +6,25 @@ const client = new Discord.Client();
 const request = require('request');
 const cheerio = require('cheerio');
 
+const snoowrap = require('snoowrap');
+const reddit = new snoowrap({
+    userAgent: 'my user agent',
+    clientId: botLogin.clientId,
+    clientSecret: botLogin.clientSecret,
+    refreshToken: botLogin.refreshToken
+});
+
+
 client.login(login);
 
 client.on('ready', () =>{
     let channel = client.channels.find(channel => channel.id === '641670546127454208');
     channel.send("Bot is now online!");
+    scrapeForLinkSD(channel);
 
     setInterval(() => {
-        scrapeForLink(channel)
-    }, 86400000);//24 hours
+        scrapeForLinkSD(channel)
+    }, 86400000);//24 hours 86400000
 });
 
 client.on('message', (recievedMessage) =>{
@@ -43,7 +53,10 @@ function processCommand(recievedMessage) {
         factorial(args, recievedMessage);
 
     else if (primaryCommand === "search")
-        search(args, recievedMessage);
+        searchSD(args, recievedMessage);
+
+    else if (primaryCommand === "reddit")
+        scrapeForLinkR(recievedMessage)
 
 }
 
@@ -78,7 +91,8 @@ function factorial(args, recievedMessage) {
     recievedMessage.channel.send(sum.toString())
 }
 
-function scrapeForLink(channel) {
+/**------------------------------------------Science Daily-------------------------------------------------------------**/
+function scrapeForLinkSD(channel) {
     let link;
     let title;
     let scienceDailyURL = "https://www.sciencedaily.com";
@@ -88,16 +102,16 @@ function scrapeForLink(channel) {
             let success = !error && response.statusCode === 200;
             if (success){
                 const $ = cheerio.load(html);
-                title = $('#featured_tab_1').find('.latest-head').find('a').text();
-                link = $('#featured_tab_1').find('.latest-head').find('a').attr('href');
+                let htmlElement = '#featured_tab_1';
+                title = $(htmlElement).find('.latest-head').find('a').text();
+                link = $(htmlElement).find('.latest-head').find('a').attr('href');
             }
-            scrapeForSource((scienceDailyURL + link), title, channel);
-        });
-     //TODO: add search-ability, users can say key terms they want in a search and bot searches for key terms in summary or title
-
+            scrapeForSourceSD((scienceDailyURL + link), title, channel);
+        }
+    );
 }
 
-function scrapeForSource(link, title, channel) {
+function scrapeForSourceSD(link, title, channel) {
 
     let source;
     let summary;
@@ -110,25 +124,67 @@ function scrapeForSource(link, title, channel) {
             summary = $('#abstract').text();
             source = $('#story_source').find('a').attr('href');
         }
-        sendSourceLink(title, summary, source, channel);
+        sendSourceLinkSD(title, summary, source, channel);
     });
 }
 
-function sendSourceLink(title, summary, link, channel) {
+function sendSourceLinkSD(title, summary, link, channel) {
     let embed = new Discord.RichEmbed()
         .setAuthor('Daily News')
         .setColor('#00bfff')
         .setTitle(title)
         .setDescription(summary)
-        .addField('link:', link)
+        .addField('Link:', link)
         .setTimestamp();
 
     channel.send(embed);
 }
 
-function search(args, recievedMessage) {
-    recievedMessage.channel.send("searching")
-    //TODO: add search-ability, user can use command with key words to search for articles
+function searchSD(args, recievedMessage) {
+    recievedMessage.channel.send("searching...");
+    let scienceDailyURL = "https://www.sciencedaily.com";
+    let titleArr = [];
+    let link;
+    let title;
+
+    let x = request("https://www.sciencedaily.com/news/computers_math/artificial_intelligence/",
+        (error, response, html) => {
+        let success = !error && response.statusCode === 200;
+
+        if (success) {
+            const $ = cheerio.load(html);
+            $('#featured_shorts a').each((index, element) => {
+                title = $(element).text();
+                titleArr.push(title);
+                titleArr.forEach((value) => {
+                    if (value.includes(args)) {
+                        link = scienceDailyURL + element.attribs.href;//this prints all 10 links of latest
+                        //TODO filter out lnks according to users input
+                        console.log(element.attribs.href)
+
+                    }
+                })
+
+            })
+        }
+        //scrapeForSourceSD(link, title, recievedMessage.channel)
+    });
+}
+
+/**------------------------------------------------REDDIT--------------------------------------------------------------**/
+
+function scrapeForLinkR(recievedMessage) {
+    reddit.getSubreddit("MachineLearning").description.then(console.log)
+/*
++[Research](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3AResearch)//TODO find way to isolate article from this link
+--------
++[Discussion](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3ADiscussion)
+--------
++[Project](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3AProject)
+--------
++[News](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3ANews)//TODO: and this one
+*/
+
 }
 
 
