@@ -6,15 +6,6 @@ const client = new Discord.Client();
 const request = require('request');
 const cheerio = require('cheerio');
 
-const snoowrap = require('snoowrap');
-const reddit = new snoowrap({
-    userAgent: 'my user agent',
-    clientId: botLogin.clientId,
-    clientSecret: botLogin.clientSecret,
-    refreshToken: botLogin.refreshToken
-});
-
-
 client.login(login);
 
 client.on('ready', () =>{
@@ -27,7 +18,7 @@ client.on('ready', () =>{
     }, 86400000);//24 hours 86400000
 });
 
-client.on('message', (recievedMessage) =>{
+client.on('message', (recievedMessage) => {
     if(recievedMessage.author === client.user)//if message was sent by bot, return (otherwise could be infinite loop)
         return;
     if(recievedMessage.content.startsWith("!"))
@@ -54,9 +45,6 @@ function processCommand(recievedMessage) {
 
     else if (primaryCommand === "search")
         searchSD(args, recievedMessage);
-
-    else if (primaryCommand === "reddit")
-        scrapeForLinkR(recievedMessage)
 
 }
 
@@ -146,47 +134,50 @@ function searchSD(args, recievedMessage) {
     let titleArr = [];
     let link;
     let title;
+    let refArr = [];
+    let ref;
+    let value;
+    let endLink;
 
     let x = request("https://www.sciencedaily.com/news/computers_math/artificial_intelligence/",
         (error, response, html) => {
-        let success = !error && response.statusCode === 200;
+            let success = !error && response.statusCode === 200;
 
-        if (success) {
-            const $ = cheerio.load(html);
-            $('#featured_shorts a').each((index, element) => {
-                title = $(element).text();
-                titleArr.push(title);
-                titleArr.forEach((value) => {
+            if (success) {
+                const $ = cheerio.load(html);
+                $('#featured_shorts a').each((index, element) => {
+                    title = $(element).text();
+                    titleArr.push(title);
+                    ref = element.attribs.href;
+                    refArr.push(ref);
+                    console.log(refArr);
+                });
+                for (let i = 0; i < titleArr.length; i++) {
+                    value = titleArr[i];
+                    endLink = refArr[i];
                     if (value.includes(args)) {
-                        link = scienceDailyURL + element.attribs.href;//this prints all 10 links of latest
-                        //TODO filter out lnks according to users input
-                        console.log(element.attribs.href)
-
+                        link = scienceDailyURL + endLink;
+                        scrapeForSourceSD(link, value, recievedMessage.channel);
                     }
-                })
-
-            })
+                }
+            }
         }
-        //scrapeForSourceSD(link, title, recievedMessage.channel)
-    });
+    );
 }
 
-/**------------------------------------------------REDDIT--------------------------------------------------------------**/
-
-function scrapeForLinkR(recievedMessage) {
-    reddit.getSubreddit("MachineLearning").description.then(console.log)
-/*
-+[Research](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3AResearch)//TODO find way to isolate article from this link
---------
-+[Discussion](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3ADiscussion)
---------
-+[Project](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3AProject)
---------
-+[News](https://www.reddit.com/r/MachineLearning/search?sort=new&restrict_sr=on&q=flair%3ANews)//TODO: and this one
-*/
-
-}
-
-
+// TODO: scrape for news from google news
+// TODO: scrape for news in these websites:
+//www.aitrends.com/
+//www.aitrends.com/category/ai-software/
+//www.aitrends.com/category/deep-learning/
+//www.aitrends.com/category/image-recognition/
+//www.aitrends.com/category/machine-learning/
+//www.aitrends.com/nlp-speech-recognition/
+//www.aitrends.com/category/neural-networks/
+//www.aitrends.com/category/predictive-analytics/
+//www.aitrends.com/research-the-future-of-ai/
+//www.aitrends.com/category/robotics/
+// TODO: have a category command, user can choose from any category above
+//http://news.mit.edu/topic/artificial-intelligence2
 
 
