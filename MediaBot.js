@@ -10,28 +10,29 @@ client.login(login);
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-client.on('ready', async () =>{
+client.on('ready', async () => {
     let channel = client.channels.find(channel => channel.id === '491806365413670918');
 
     commands(channel);
 
-    await delay(60000);
+    await delay(60000);//1 minute
 
     scrapeForLinkSD(channel);
 
     setInterval(() => {
         scrapeForLinkSD(channel)
     }, 86400000);//24 hours 86400000
+
 });
 
-client.on('message', (recievedMessage) => {
+client.on('message', async (recievedMessage) => {
     if(recievedMessage.author === client.user)//if message was sent by bot, return (otherwise could be infinite loop)
         return;
     if(recievedMessage.content.startsWith("!"))
         processCommand(recievedMessage);
 });
 
-function processCommand(recievedMessage) {
+async function processCommand(recievedMessage) {
     let fullCommand = recievedMessage.content.substr(1);
     let splitCommand = fullCommand.split(" ");
     let primaryCommand = splitCommand[0];
@@ -53,7 +54,7 @@ function processCommand(recievedMessage) {
         searchSD(args, recievedMessage);
 
     else if (primaryCommand === "help")
-        commands(recievedMessage)
+        commands(recievedMessage.channel)
 
 }
 
@@ -66,7 +67,7 @@ function commands(channel) {
     let embed = new Discord.RichEmbed()
         .setAuthor('Help')
         .setColor('#00bfff')
-        .setTitle('**Possible Commands**\n')
+        .setTitle('**Possible Commands:**\n')
         .setDescription(message)
         .setTimestamp();
     channel.send(embed)
@@ -106,7 +107,7 @@ function factorial(args, recievedMessage) {
 
 /**------------------------------------------Science Daily-------------------------------------------------------------**/
 
-function scrapeForLinkSD(channel) {
+async function scrapeForLinkSD(channel) {
     let link;
     let title;
     let scienceDailyURL = "https://www.sciencedaily.com";
@@ -125,7 +126,7 @@ function scrapeForLinkSD(channel) {
     );
 }
 
-function scrapeForSourceSD(link, title, channel) {
+async function scrapeForSourceSD(link, title, channel) {
 
     let source;
     let summary;
@@ -142,7 +143,7 @@ function scrapeForSourceSD(link, title, channel) {
     });
 }
 
-function sendSourceLinkSD(title, summary, link, channel) {
+async function sendSourceLinkSD(title, summary, link, channel) {
     let embed = new Discord.RichEmbed()
         .setAuthor('Daily News')
         .setColor('#00bfff')
@@ -154,7 +155,7 @@ function sendSourceLinkSD(title, summary, link, channel) {
     channel.send(embed);
 }
 
-function searchSD(args, recievedMessage) {
+async function searchSD(args, recievedMessage) {
     recievedMessage.channel.send("searching...");
     let scienceDailyURL = "https://www.sciencedaily.com";
     let titleArr = [];
@@ -176,12 +177,19 @@ function searchSD(args, recievedMessage) {
                     titleArr.push(title);
                     ref = element.attribs.href;
                     refArr.push(ref);
-                    console.log(refArr);
                 });
+
+                $('#summaries a').each((index, element) => {
+                    title = $(element).text();
+                    titleArr.push(title);
+                    ref = element.attribs.href;
+                    refArr.push(ref);
+                });
+
                 for (let i = 0; i < titleArr.length; i++) {
                     value = titleArr[i];
                     endLink = refArr[i];
-                    if (value.includes(args)) {
+                    if (value.toLowerCase().includes(args)) {
                         link = scienceDailyURL + endLink;
                         scrapeForSourceSD(link, value, recievedMessage.channel);
                     }
