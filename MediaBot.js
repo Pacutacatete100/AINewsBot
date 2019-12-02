@@ -156,7 +156,7 @@ async function sendSourceLinkSD(title, summary, link, channel) {
 }
 
 async function searchSD(args, recievedMessage) {
-    recievedMessage.channel.send("searching...");
+    recievedMessage.channel.send("searching for " + args + "...");
     let scienceDailyURL = "https://www.sciencedaily.com";
     let titleArr = [];
     let link;
