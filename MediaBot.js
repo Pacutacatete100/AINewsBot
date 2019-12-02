@@ -8,9 +8,15 @@ const cheerio = require('cheerio');
 
 client.login(login);
 
-client.on('ready', () =>{
-    let channel = client.channels.find(channel => channel.id === '641670546127454208');
-    channel.send("Bot is now online!");
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+client.on('ready', async () =>{
+    let channel = client.channels.find(channel => channel.id === '491806365413670918');
+
+    commands(channel);
+
+    await delay(60000);
+
     scrapeForLinkSD(channel);
 
     setInterval(() => {
@@ -46,6 +52,25 @@ function processCommand(recievedMessage) {
     else if (primaryCommand === "search")
         searchSD(args, recievedMessage);
 
+    else if (primaryCommand === "help")
+        commands(recievedMessage)
+
+}
+
+function commands(channel) {
+    let message = "**multiply**: _numbers you want me to multiply separated by spaces_\n" +
+        "**add**: _numbers you want me to add separated by spaces_\n" +
+        "**factorial**: _number you want me to find the factorial of_\n" +
+        "**search**: _enter one search term and I will find it in an article_\n";
+
+    let embed = new Discord.RichEmbed()
+        .setAuthor('Help')
+        .setColor('#00bfff')
+        .setTitle('**Possible Commands**\n')
+        .setDescription(message)
+        .setTimestamp();
+    channel.send(embed)
+
 }
 
 function multiplyCommand(args, recievedMessage) {
@@ -80,6 +105,7 @@ function factorial(args, recievedMessage) {
 }
 
 /**------------------------------------------Science Daily-------------------------------------------------------------**/
+
 function scrapeForLinkSD(channel) {
     let link;
     let title;
@@ -166,18 +192,4 @@ function searchSD(args, recievedMessage) {
 }
 
 // TODO: scrape for news from google news
-// TODO: scrape for news in these websites:
-//www.aitrends.com/
-//www.aitrends.com/category/ai-software/
-//www.aitrends.com/category/deep-learning/
-//www.aitrends.com/category/image-recognition/
-//www.aitrends.com/category/machine-learning/
-//www.aitrends.com/nlp-speech-recognition/
-//www.aitrends.com/category/neural-networks/
-//www.aitrends.com/category/predictive-analytics/
-//www.aitrends.com/research-the-future-of-ai/
-//www.aitrends.com/category/robotics/
-// TODO: have a category command, user can choose from any category above
 //http://news.mit.edu/topic/artificial-intelligence2
-
-
