@@ -11,11 +11,11 @@ client.login(login);
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 client.on('ready', async () => {
-    let channel = client.channels.find(channel => channel.id === '491806365413670918');
+    let channel = client.channels.find(channel => channel.id === '491806365413670918');//test channel id: 491806365413670918
 
     commands(channel);
 
-    await delay(60000);//1 minute
+    await delay(30000);//.5 minute
 
     scrapeForLinkSD(channel);
 
@@ -62,7 +62,7 @@ function commands(channel) {
     let message = "**multiply**: _numbers you want me to multiply separated by spaces_\n" +
         "**add**: _numbers you want me to add separated by spaces_\n" +
         "**factorial**: _number you want me to find the factorial of_\n" +
-        "**search**: _enter one search term and I will find it in an article_\n";
+        "**search**: _enter a search term (or many separated by commas) and I will find them in an article_\n";
 
     let embed = new Discord.RichEmbed()
         .setAuthor('Help')
@@ -113,7 +113,7 @@ async function scrapeForLinkSD(channel) {
     let scienceDailyURL = "https://www.sciencedaily.com";
 
     let x = request("https://www.sciencedaily.com/news/computers_math/artificial_intelligence/",
-        (error, response, html) => {
+        async (error, response, html) => {
             let success = !error && response.statusCode === 200;
             if (success){
                 const $ = cheerio.load(html);
@@ -122,6 +122,8 @@ async function scrapeForLinkSD(channel) {
                 link = $(htmlElement).find('.latest-head').find('a').attr('href');
             }
             scrapeForSourceSD((scienceDailyURL + link), title, channel);
+
+            //TODO: scrape for link every hour, if link is new, send, if not dont send
         }
     );
 }
@@ -140,6 +142,7 @@ async function scrapeForSourceSD(link, title, channel) {
             source = $('#story_source').find('a').attr('href');
         }
         sendSourceLinkSD(title, summary, source, channel);
+
     });
 }
 
@@ -153,6 +156,7 @@ async function sendSourceLinkSD(title, summary, link, channel) {
         .setTimestamp();
 
     channel.send(embed);
+
 }
 
 async function searchSD(args, recievedMessage) {
@@ -200,4 +204,7 @@ async function searchSD(args, recievedMessage) {
 }
 
 // TODO: scrape for news from google news
+//https://serpapi.com/playground?engine=google&q=coffee&google_domain=google.com
+//https://serpapi.com/news-results
+
 //http://news.mit.edu/topic/artificial-intelligence2
