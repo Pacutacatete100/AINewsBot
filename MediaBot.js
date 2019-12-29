@@ -169,6 +169,11 @@ async function searchSD(args, recievedMessage) {
     let ref;
     let value;
     let endLink;
+    let keyWordsArr = [];
+
+    args.forEach((val) => {
+        keyWordsArr.push(val)
+    });
 
     let x = request("https://www.sciencedaily.com/news/computers_math/artificial_intelligence/",
         (error, response, html) => {
@@ -193,7 +198,8 @@ async function searchSD(args, recievedMessage) {
                 for (let i = 0; i < titleArr.length; i++) {
                     value = titleArr[i];
                     endLink = refArr[i];
-                    if (value.toLowerCase().includes(args)) {
+                    //value.toLowerCase().includes(args)
+                    if (keyWordsArr.every(item => value.toLowerCase().includes(item))) {
                         link = scienceDailyURL + endLink;
                         scrapeForSourceSD(link, value, recievedMessage.channel);
                     }
