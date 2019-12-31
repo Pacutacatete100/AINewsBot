@@ -105,7 +105,7 @@ function factorial(args, recievedMessage) {
     recievedMessage.channel.send(sum.toString())
 }
 
-/**------------------------------------------Science Daily-------------------------------------------------------------**/
+/**------------------------------------------------------Science Daily--------------------------------------------------------------------**/
 
 async function scrapeForLinkSD(channel) {
     let link;
@@ -121,9 +121,11 @@ async function scrapeForLinkSD(channel) {
                 title = $(htmlElement).find('.latest-head').find('a').text();
                 link = $(htmlElement).find('.latest-head').find('a').attr('href');
             }
-            scrapeForSourceSD((scienceDailyURL + link), title, channel);
+            /**
+            TODO: send message if no article with search words is found
+            **/
 
-            //TODO: scrape for link every hour, if link is new, send, if not dont send
+            scrapeForSourceSD((scienceDailyURL + link), title, channel);
         }
     );
 }
@@ -147,8 +149,9 @@ async function scrapeForSourceSD(link, title, channel) {
 }
 
 async function sendSourceLinkSD(title, summary, link, channel) {
+
     let embed = new Discord.RichEmbed()
-        .setAuthor('Daily News')
+        .setAuthor('AI News')
         .setColor('#00bfff')
         .setTitle(title)
         .setDescription(summary)
@@ -165,7 +168,7 @@ async function searchSD(args, recievedMessage) {
     let titleArr = [];
     let link;
     let title;
-    let refArr = [];
+    let referenceArr = [];
     let ref;
     let value;
     let endLink;
@@ -185,32 +188,68 @@ async function searchSD(args, recievedMessage) {
                     title = $(element).text();
                     titleArr.push(title);
                     ref = element.attribs.href;
-                    refArr.push(ref);
+                    referenceArr.push(ref);
                 });
 
                 $('#summaries a').each((index, element) => {
                     title = $(element).text();
                     titleArr.push(title);
                     ref = element.attribs.href;
-                    refArr.push(ref);
+                    referenceArr.push(ref);
                 });
+
+                let linkCount = 0;
+                let linkArray = [];
+                let titleArrFinal = [];
 
                 for (let i = 0; i < titleArr.length; i++) {
                     value = titleArr[i];
-                    endLink = refArr[i];
-                    //value.toLowerCase().includes(args)
+                    endLink = referenceArr[i];
+
                     if (keyWordsArr.every(item => value.toLowerCase().includes(item))) {
                         link = scienceDailyURL + endLink;
-                        scrapeForSourceSD(link, value, recievedMessage.channel);
+                        linkArray.push(link);
+                        linkCount++
+                        titleArrFinal.push(value)
                     }
                 }
+                promptChooseLinkToSend(linkCount, linkArray, recievedMessage.channel, args, titleArrFinal)
             }
         }
     );
 }
 
+async function promptChooseLinkToSend(count, linkArray, channel, args, titleArr) {
+    if (count > 1) {
+        channel.send("There are " + count + " articles with the word(s) " + args + ", choose which one you want to view: \n");
+        await delay(1000);
+
+        for (var i = 0; i < linkArray.length; i++) {
+            channel.send(i + ": **" + titleArr[i] + "**");
+            await delay(1000);
+        }
+    }
+    if (count === 1 ) {
+        scrapeForSourceSD(linkArray[0], title, channel);
+    }
+
+    client.on('message', async (choice) => {
+        if(choice.author === client.user)//if message was sent by bot, return (otherwise could be infinite loop)
+            return;
+
+        let choiceNum = choice.content.toString()
+
+        scrapeForSourceSD(linkArray[choiceNum], titleArr[choiceNum], choice.channel);
+
+    });
+
+
+}
+
+/**---------------------------------------------------------------------------------------------------------------------------------------**/
 // TODO: scrape for news from google news
 //https://serpapi.com/playground?engine=google&q=coffee&google_domain=google.com
 //https://serpapi.com/news-results
+//https://www.google.com/search?q=ai&sxsrf=ACYBGNRKyZFRIOYcbq3N4DNWwU3_jNYc8A:1577605237369&source=lnms&tbm=nws&sa=X&ved=2ahUKEwijj5O-rdrmAhXFKH0KHblhB6MQ_AUoAXoECA0QAw&biw=1536&bih=722
 
 //http://news.mit.edu/topic/artificial-intelligence2
