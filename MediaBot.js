@@ -5,7 +5,6 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const request = require('request');
 const cheerio = require('cheerio');
-const github = 'https://github.com/Pacutacatete100/AINewsBot/blob/master/MediaBot.js';
 
 client.login(login);
 
@@ -26,8 +25,9 @@ client.on('ready', async () => {
 });
 
 client.on('message', async recievedMessage => {
-	if (recievedMessage.author === client.user) return; //if sent by bot, return (or could be infinite loop)
-
+	if (recievedMessage.author === client.user)
+		//if message was sent by bot, return (otherwise could be infinite loop)
+		return;
 	if (recievedMessage.content.startsWith('!')) processCommand(recievedMessage);
 });
 
@@ -38,7 +38,8 @@ async function processCommand(recievedMessage) {
 	let args = splitCommand.slice(1);
 
 	if (primaryCommand === 'multiply') multiplyCommand(args, recievedMessage);
-	else if (primaryCommand === 'github') recievedMessage.channel.send(github);
+	else if (primaryCommand === 'github')
+		recievedMessage.channel.send('https://github.com/Pacutacatete100/AINewsBot/blob/master/MediaBot.js');
 	else if (primaryCommand === 'add') addCommand(args, recievedMessage);
 	else if (primaryCommand === 'factorial') factorial(args, recievedMessage);
 	else if (primaryCommand === 'search') searchSD(args, recievedMessage);
@@ -92,7 +93,7 @@ function factorial(args, recievedMessage) {
 	recievedMessage.channel.send(sum.toString());
 }
 
-/**------------------------------------------------------Science Daily--------------------------------------------------------------------**/
+/**------------------------------------------Science Daily-------------------------------------------------------------**/
 
 async function scrapeForLinkSD(channel) {
 	let link;
@@ -115,10 +116,9 @@ async function scrapeForLinkSD(channel) {
 					.find('a')
 					.attr('href');
 			}
-
-			//TODO send message if no article with search words is found
-
 			scrapeForSourceSD(scienceDailyURL + link, title, channel);
+
+			//TODO: scrape for link every hour, if link is new, send, if not dont send
 		}
 	);
 }
@@ -127,7 +127,7 @@ async function scrapeForSourceSD(link, title, channel) {
 	let source;
 	let summary;
 
-	let x = request(link, async (error, response, html) => {
+	let x = request(link, (error, response, html) => {
 		let success = !error && response.statusCode === 200;
 
 		if (success) {
@@ -143,7 +143,7 @@ async function scrapeForSourceSD(link, title, channel) {
 
 async function sendSourceLinkSD(title, summary, link, channel) {
 	let embed = new Discord.RichEmbed()
-		.setAuthor('AI News')
+		.setAuthor('Daily News')
 		.setColor('#00bfff')
 		.setTitle(title)
 		.setDescription(summary)
@@ -159,7 +159,7 @@ async function searchSD(args, recievedMessage) {
 	let titleArr = [];
 	let link;
 	let title;
-	let referenceArr = [];
+	let refArr = [];
 	let ref;
 	let value;
 	let endLink;
@@ -180,62 +180,34 @@ async function searchSD(args, recievedMessage) {
 					title = $(element).text();
 					titleArr.push(title);
 					ref = element.attribs.href;
-					referenceArr.push(ref);
+					refArr.push(ref);
 				});
 
 				$('#summaries a').each((index, element) => {
 					title = $(element).text();
 					titleArr.push(title);
 					ref = element.attribs.href;
-					referenceArr.push(ref);
+					refArr.push(ref);
 				});
-
-				let linkCount = 0;
-				let linkArray = [];
-				let titleArrFinal = [];
 
 				for (let i = 0; i < titleArr.length; i++) {
 					value = titleArr[i];
-					endLink = referenceArr[i];
-
+					endLink = refArr[i];
+					//value.toLowerCase().includes(args)
 					if (keyWordsArr.every(item => value.toLowerCase().includes(item))) {
 						link = scienceDailyURL + endLink;
-						linkArray.push(link);
-						linkCount++;
-						titleArrFinal.push(value);
+						scrapeForSourceSD(link, value, recievedMessage.channel);
 					}
 				}
-				promptChooseLinkToSend(linkCount, linkArray, recievedMessage.channel, args, titleArrFinal);
 			}
 		}
 	);
 }
 
-async function promptChooseLinkToSend(count, linkArray, channel, args, titleArr) {
-	if (count > 1) {
-		channel.send(
-			'I found ' + count + ' articles with the word(s) ' + args + ', choose which one you want to view: \n'
-		);
-		await delay(1000);
-
-		for (var i = 0; i < linkArray.length; i++) {
-			channel.send(i + ': **' + titleArr[i] + '**');
-			await delay(1300);
-		}
-		client.on('message', async choice => {
-			if (recievedMessage.author === client.user) return; //if message was sent by bot, return (otherwise could be infinite loop)
-
-			const choiceNum = choice.content.toString(); //'let' makes the choice change to a string, invalid for array calls, TODO: try to see if const works
-			console.log(choiceNum);
-
-			scrapeForSourceSD(linkArray[choiceNum], titleArr[choiceNum], choice.channel);
-		});
-	}
-	if (count === 1) {
-		scrapeForSourceSD(linkArray[0], titleArr[0], channel);
-	}
-}
-
-/**---------------------------------------------------------------------------------------------------------------------------------------**/
+// TODO: scrape for news from google news
+//https://serpapi.com/playground?engine=google&q=coffee&google_domain=google.com
+//https://serpapi.com/news-results
+//https://www.google.com/search?q=ai&sxsrf=ACYBGNRKyZFRIOYcbq3N4DNWwU3_jNYc8A:1577605237369&source=lnms&tbm=nws&sa=X&ved=2ahUKEwijj5O-rdrmAhXFKH0KHblhB6MQ_AUoAXoECA0QAw&biw=1536&bih=722
 
 // TODO: https://www.feedspot.com/infiniterss.php?followfeedid=4575139&q=site:https%3A%2F%2Fnews.google.com%2Frss%2Fsearch%3Fq%3DMachine%2BLearning%26hl%3Den-US%26gl%3DUS%26ceid%3DUS%253Aen%26x%3D1571747125.1658
+//http://news.mit.edu/topic/artificial-intelligence2

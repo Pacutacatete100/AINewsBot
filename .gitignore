@@ -1,0 +1,5 @@
+node_modules/
+.idea/
+tsconfig.json
+package-lock.json
+.vscode/settings.json
