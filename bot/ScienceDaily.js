@@ -47,7 +47,11 @@ async function scrapeForSourceSD(link, title, channel, count) {
 				.find('a')
 				.attr('href');
 		}
-		sendSourceLinkSD(title, summary, source, channel, count);
+		if (count > 1) {
+			//TODO
+		} else {
+			sendSourceLinkSD(title, summary, source, channel, count);
+		}
 	});
 }
 

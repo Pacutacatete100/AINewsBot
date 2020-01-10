@@ -1,4 +1,4 @@
-var botLogin = require('./tsconfig.json');
+var botLogin = require('../tsconfig.json');
 let login = botLogin.token;
 
 const Discord = require('discord.js');
