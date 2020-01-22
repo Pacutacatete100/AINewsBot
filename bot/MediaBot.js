@@ -12,11 +12,12 @@ client.login(login);
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 client.on('ready', async () => {
+	console.log('bot is online');
 	let channel = client.channels.find(channel => channel.id === '491806365413670918'); //test channel id: 491806365413670918
 
 	dcommands.commands(channel);
 
-	await delay(30000); //.5 minute
+	await delay(30000); //.5 minutes
 
 	ScienceDaily.scrapeForLinkSD(channel);
 

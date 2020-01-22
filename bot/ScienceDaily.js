@@ -2,6 +2,8 @@ const request = require('request');
 const cheerio = require('cheerio');
 const Discord = require('discord.js');
 
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
 /**------------------------------------------Science Daily-------------------------------------------------------------**/
 async function scrapeForLinkSD(channel) {
 	let link;
@@ -31,11 +33,10 @@ async function scrapeForLinkSD(channel) {
 	);
 }
 
-let sourceArr = [];
-
 async function scrapeForSourceSD(link, title, channel, count) {
 	let source;
 	let summary;
+	let sourceArr = [];
 
 	let x = request(link, (error, response, html) => {
 		let success = !error && response.statusCode === 200;
@@ -47,12 +48,18 @@ async function scrapeForSourceSD(link, title, channel, count) {
 				.find('a')
 				.attr('href');
 		}
-		if (count > 1) {
-			//TODO
-		} else {
-			sendSourceLinkSD(title, summary, source, channel, count);
-		}
+		sourceArr.push(source);
+		sendSourceLinkSD(title, summary, source, channel, count);
+		//TODO:
+		// if (count > 1) {
+		// 	sendMultipleSourceLinkSD(title, sourceArr, channel);
+		// } else {
+		// 	sendSourceLinkSD(title, summary, source, channel, count);
+		// }
 	});
+}
+async function sendMultipleSourceLinkSD(title, sourceArr, channel) {
+	//TODO
 }
 
 async function sendSourceLinkSD(title, summary, link, channel, count) {

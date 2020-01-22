@@ -8,8 +8,7 @@ async function processCommand(recievedMessage) {
 	let args = splitCommand.slice(1);
 
 	if (primaryCommand === 'multiply') multiplyCommand(args, recievedMessage);
-	else if (primaryCommand === 'github')
-		recievedMessage.channel.send('https://github.com/Pacutacatete100/AINewsBot/blob/master/MediaBot.js');
+	else if (primaryCommand === 'github') recievedMessage.channel.send('https://github.com/Pacutacatete100/AINewsBot');
 	else if (primaryCommand === 'add') addCommand(args, recievedMessage);
 	else if (primaryCommand === 'factorial') factorial(args, recievedMessage);
 	else if (primaryCommand === 'search') ScienceDaily.searchSD(args, recievedMessage);
