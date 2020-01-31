@@ -59,7 +59,7 @@ async function scrapeForSourceSD(link, title, channel, count) {
 	});
 }
 async function sendMultipleSourceLinkSD(title, sourceArr, channel) {
-	//TODO
+	//TODO git test
 }
 
 async function sendSourceLinkSD(title, summary, link, channel, count) {
